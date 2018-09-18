@@ -19,7 +19,7 @@ app.layout = html.Div(
             html.Span("CRM App using Salesforce API", className='app-title'),
             
             html.Div(
-                html.Img(src='https://raw.githubusercontent.com/YenCChien/mfg-center/master/img/logo.png',height="100%")
+                html.Img(src='https://github.com/YenCChien/mfg-center/blob/master/img/logo_.png',height="100%")
                 ,style={"float":"right","height":"100%"})
             ],
             className="row header"
