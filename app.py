@@ -19,7 +19,7 @@ app.layout = html.Div(
             html.Span("CRM App using Salesforce API", className='app-title'),
             
             html.Div(
-                html.Img(src='https://s3-us-west-1.amazonaws.com/plotly-tutorials/logo/new-branding/dash-logo-by-plotly-stripe-inverted.png',height="100%")
+                html.Img(src='https://raw.githubusercontent.com/YenCChien/mfg-center/master/img/logo.png',height="100%")
                 ,style={"float":"right","height":"100%"})
             ],
             className="row header"
