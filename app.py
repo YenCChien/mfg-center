@@ -35,7 +35,6 @@ app.layout = html.Div(
                 ],
                 value="afi_tab",
             )
-
             ],
             className="row tabs_div"
             ),
