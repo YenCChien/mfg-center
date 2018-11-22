@@ -55,8 +55,6 @@ app.layout = html.Div(
     style={"margin": "0%"},
 )
 
-
-
 def afiTab():
     return html.Div([
             dcc.DatePickerRange(
@@ -185,7 +183,22 @@ def tables(startDate,endDate):
     df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
     cols = df.columns.tolist()
     colSorted = [cols[-1]]+[cols[-2]]+[cols[-4]]+cols[:-4]
-    return df_to_table(df[colSorted].head(3))
+    a = df[colSorted]
+    alen = len(a)
+    avgList = []
+    avg = a.mean().round(2)
+    for c in a.columns:
+        if c == '_id':
+            avgList.append('Avg')
+        elif c == 'Time':
+            avgList.append(None)
+        elif c == 'Station-id':
+            avgList.append(None)
+        else:
+            avgList.append(avg[c])
+    
+    a.loc[alen] = avgList
+    return df_to_table(a)
     # return df_to_table(df[["_id","Station-id","Time","333000000_R","339000000_R","345000000_R","351000000_R","357000000_R",
     #         "363000000_R","369000000_R","375000000_R","381000000_R","387000000_R","393000000_R","399000000_R","405000000_R",
     #         "411000000_R","417000000_R","423000000_R"]])

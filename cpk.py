@@ -68,4 +68,3 @@ def df_to_table(df):
             for i in range(len(df))
         ]
     )
-
