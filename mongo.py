@@ -1,5 +1,7 @@
 from pymongo import MongoClient
 from bson.objectid import ObjectId
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 class Mongodb:
     def __init__(self, ip, port):
@@ -46,6 +48,12 @@ def saveDB(db, table, data, server, port=27017):
     c.insert(data)
     c.close
 
+def monthPass(m):
+    conn = MongoClient('127.0.0.1:27017')
+    db = conn['1521900003T0']
+    collection=db.T1_Log
+    result = collection.find({'Time':{'$gte': datetime(2018,m,1),'$lt': datetime(2018,m,1)+relativedelta(months=1)}}).count()
+    return result
 # conn = MongoClient('192.168.45.68:27017')
 
 # db = conn.AFI
