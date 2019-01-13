@@ -12,7 +12,7 @@ from plotly import graph_objs as go
 import math
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from app import app
+from app import *
 import numpy as np
 from datetime import datetime
 from mongo import *
@@ -23,7 +23,7 @@ for m in range(1,13):
 
 retestDic = getErrorCount(datetime(2018,1,1),datetime(2018,12,31))
 # retestDic = {'E116': 2, 'A111': 3, 'R164': 5, 'R103': 8, 'A112': 10, 'E110': 12, 'R143': 15, 'R102': 18, 'J80': 19, 'R162': 0, 'L000': 5, 'E104': 6, 'S004': 7, 'R122': 9, 'C002': 7, 'R145': 0, 'A113': 3, 'D004': 3, 'R104': 0}
-initTb = cpkinitalTable(datetime(2018,10,12),datetime(2018,10,13))[0:12]
+initTb = cpkinitalTable(wholeData,datetime(2018,10,12),datetime(2018,10,13))[0:12]
 
 
 def indicator(color, text, id_value):
@@ -138,7 +138,7 @@ def cpkTab():
                 className="row",
                 children=[df_to_table(initTb)],
                 style={
-                    "maxHeight": "400px",
+                    "maxHeight": "550px",
                     "overflowY": "scroll",
                     "padding": "10",
                     "marginTop": "5",

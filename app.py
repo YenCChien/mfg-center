@@ -15,7 +15,14 @@ from bson.objectid import ObjectId
 from cpk import *
 from mongo import *
 
-app = dash.Dash()
+conn_ = MongoClient('127.0.0.1:27017')
+db_ = conn_['1521900003T0']
+collection_=db_.DsQAM
+
+wholeData = [i for i in collection_.find()]
+# print(wholeData)
+
+app = dash.Dash(__name__)
 
 app.layout = html.Div(
     [
@@ -46,18 +53,16 @@ app.layout = html.Div(
         
         # Tab content
         html.Div(id="tab_content", className="row", style={"margin": "2% 3%"}),
-        html.Link(href="https://use.fontawesome.com/releases/v5.2.0/css/all.css",rel="stylesheet"),
-        html.Link(href="https://cdn.rawgit.com/plotly/dash-app-stylesheets/2d266c578d2a6e8850ebce48fdb52759b2aef506/stylesheet-oil-and-gas.css",rel="stylesheet"),
-        html.Link(href="https://fonts.googleapis.com/css?family=Dosis", rel="stylesheet"),
-        html.Link(href="https://fonts.googleapis.com/css?family=Open+Sans", rel="stylesheet"),
-        html.Link(href="https://fonts.googleapis.com/css?family=Ubuntu", rel="stylesheet"),
-        html.Link(href="https://cdn.rawgit.com/amadoukane96/8a8cfdac5d2cecad866952c52a70a50e/raw/cd5a9bf0b30856f4fc7e3812162c74bfc0ebe011/dash_crm.css", rel="stylesheet")
+        # html.Link(href="https://use.fontawesome.com/releases/v5.6.3/css/all.css",rel="stylesheet"),
+        # html.Link(href="https://cdn.rawgit.com/plotly/dash-app-stylesheets/2d266c578d2a6e8850ebce48fdb52759b2aef506/stylesheet-oil-and-gas.css",rel="stylesheet"),
+        # html.Link(href="https://fonts.googleapis.com/css?family=Dosis", rel="stylesheet"),
+        # html.Link(href="https://fonts.googleapis.com/css?family=Open+Sans", rel="stylesheet"),
+        # html.Link(href="https://fonts.googleapis.com/css?family=Ubuntu", rel="stylesheet"),
+        # html.Link(href="https://cdn.rawgit.com/amadoukane96/8a8cfdac5d2cecad866952c52a70a50e/raw/cd5a9bf0b30856f4fc7e3812162c74bfc0ebe011/dash_crm.css", rel="stylesheet")
     ],
     className="row",
     style={"margin": "0%"},
 )
-
-
 
 def afiTab():
     return html.Div([
@@ -129,7 +134,7 @@ def render_content(tab):
         return opportunities.layout
 
 def parsingRates(cond):
-    conn = MongoClient('192.168.45.38:27017')
+    conn = MongoClient('127.0.0.1:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     getPass = 0
@@ -194,10 +199,11 @@ def displot(startDate,endDate):
     if endDate==None:return ''
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
-    conn = MongoClient('192.168.45.38:27017')
-    db = conn['1521900003T0']
-    collection=db.DsQAM
-    getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
+    # conn = MongoClient('127.0.0.1:27017')
+    # db = conn['1521900003T0']
+    # collection=db.DsQAM
+    # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
+    getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
     df = pd.DataFrame(getPass)
     df = df.fillna(0)
     df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
@@ -207,7 +213,7 @@ def displot(startDate,endDate):
     for x in cols[:-4]:
         dataList.append(df[x])
     # print(dataList,colSorted)
-    return ff.create_distplot(dataList, colSorted, bin_size=.5)
+    return ff.create_distplot(dataList, colSorted,show_curve=False, bin_size=.5,show_rug=False)
 
 @app.callback(Output("leads_table", "children"),
              [Input("date-picker", "start_date"),
@@ -219,7 +225,8 @@ def tables(startDate,endDate):
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print("---------------",stDate,edDate)
-    a = cpkinitalTable(stDate,edDate)
+    a = cpkinitalTable(wholeData,stDate,edDate)
+    print(a)
     return df_to_table(a)
     # return df_to_table(df[["_id","Station-id","Time","333000000_R","339000000_R","345000000_R","351000000_R","357000000_R",
     #         "363000000_R","369000000_R","375000000_R","381000000_R","387000000_R","393000000_R","399000000_R","405000000_R",
