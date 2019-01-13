@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import dash
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_core_components as dcc
+import plotly.figure_factory as ff
 import dash_html_components as html
-import datetime
+from datetime import datetime
 import pandas as pd
 import flask
 import plotly.plotly as py
@@ -12,6 +13,7 @@ import math
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from cpk import *
+from mongo import *
 
 app = dash.Dash()
 
@@ -55,11 +57,13 @@ app.layout = html.Div(
     style={"margin": "0%"},
 )
 
+
+
 def afiTab():
     return html.Div([
             dcc.DatePickerRange(
                 id='date-picker-range',
-                start_date=datetime.datetime.now(),
+                start_date=datetime.now(),
                 end_date_placeholder_text='Select a date!'
             ),
             html.Div([
@@ -109,9 +113,11 @@ def afiTab():
             ])
         ])
 
+
 app.config['suppress_callback_exceptions']=True
 
-@app.callback(Output("tab_content", "children"), [Input("tabs", "value")])
+@app.callback(Output("tab_content", "children"),
+             [Input("tabs", "value")],)
 def render_content(tab):
     if tab == "cpk_tab":
         return cpkTab()
@@ -123,12 +129,12 @@ def render_content(tab):
         return opportunities.layout
 
 def parsingRates(cond):
-    conn = MongoClient('192.168.12.80:27017')
+    conn = MongoClient('192.168.45.38:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     getPass = 0
     for col in colls:
-        if col == 'T1_Log':continue
+        if col == 'T1_Log' or col == 'Case Label Check':continue
         collection=eval('db.{}'.format(col))
         getPass += collection.find(cond).count()
     conn.close()
@@ -139,8 +145,8 @@ def parsingRates(cond):
              Input("date-picker-range", "end_date"),])
 def passContent(startDate,endDate):
     if endDate==None:return ''
-    stDate = datetime.datetime.strptime(startDate, "%Y-%m-%d")
-    edDate = datetime.datetime.strptime(endDate, "%Y-%m-%d")
+    stDate = datetime.strptime(startDate, "%Y-%m-%d")
+    edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print(startDate,endDate)
     return parsingRates({'Time':{'$gt': stDate},'Time':{'$lt': edDate},"Result":"PASS"})
 
@@ -149,8 +155,8 @@ def passContent(startDate,endDate):
              Input("date-picker-range", "end_date"),])
 def failContent(startDate,endDate):
     if endDate==None:return ''
-    stDate = datetime.datetime.strptime(startDate, "%Y-%m-%d")
-    edDate = datetime.datetime.strptime(endDate, "%Y-%m-%d")
+    stDate = datetime.strptime(startDate, "%Y-%m-%d")
+    edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print(startDate,endDate)
     return parsingRates({'Time':{'$gt': stDate},'Time':{'$lt': edDate},"Result":"FAIL"})
 
@@ -159,45 +165,61 @@ def failContent(startDate,endDate):
              Input("date-picker-range", "end_date"),])
 def nullContent(startDate,endDate):
     if endDate==None:return ''
-    stDate = datetime.datetime.strptime(startDate, "%Y-%m-%d")
-    edDate = datetime.datetime.strptime(endDate, "%Y-%m-%d")
+    stDate = datetime.strptime(startDate, "%Y-%m-%d")
+    edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print(startDate,endDate)
     return parsingRates({'Time':{'$gt': stDate},'Time':{'$lt': edDate},'_id': {'$regex':'-'}})
+
+@app.callback(Output("lead_source", "figure"),
+             [Input("date-picker", "start_date"),
+             Input("date-picker", "end_date"),])
+def reTestRatio(startDate,endDate):
+    if endDate==None:return ''
+    stDate = datetime.strptime(startDate, "%Y-%m-%d")
+    edDate = datetime.strptime(endDate, "%Y-%m-%d")
+    r = getErrorCount(stDate,edDate)
+    print(r)
+    trace = go.Pie(
+                labels=list(r.keys()),
+                values=list(r.values()),
+                marker={"colors": ["#264e86", "#0074e4", "#74dbef", "#eff0f4"]},
+            )
+    layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h"))
+    return dict(data=[trace], layout=layout)
+
+@app.callback(Output("displot", "figure"),
+             [Input("date-picker", "start_date"),
+             Input("date-picker", "end_date"),])
+def displot(startDate,endDate):
+    if endDate==None:return ''
+    stDate = datetime.strptime(startDate, "%Y-%m-%d")
+    edDate = datetime.strptime(endDate, "%Y-%m-%d")
+    conn = MongoClient('192.168.45.38:27017')
+    db = conn['1521900003T0']
+    collection=db.DsQAM
+    getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
+    df = pd.DataFrame(getPass)
+    df = df.fillna(0)
+    df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
+    cols = df.columns.tolist()
+    colSorted = cols[:-4]
+    dataList = []
+    for x in cols[:-4]:
+        dataList.append(df[x])
+    # print(dataList,colSorted)
+    return ff.create_distplot(dataList, colSorted, bin_size=.5)
 
 @app.callback(Output("leads_table", "children"),
              [Input("date-picker", "start_date"),
              Input("date-picker", "end_date"),])
 def tables(startDate,endDate):
+    print(type(startDate),startDate,endDate)
     if endDate==None:return ''
-    stDate = datetime.datetime.strptime(startDate, "%Y-%m-%d")
-    edDate = datetime.datetime.strptime(endDate, "%Y-%m-%d")
+    print(startDate,endDate)
+    stDate = datetime.strptime(startDate, "%Y-%m-%d")
+    edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print("---------------",stDate,edDate)
-    conn = MongoClient('192.168.12.80:27017')
-    db = conn['1521900003T0']
-    # colls = db.collection_names()
-    collection=db.DsQAM
-    getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
-    # print(getPass[0]['Frequency'])
-    conn.close()
-    df = pd.DataFrame(getPass)
-    df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
-    cols = df.columns.tolist()
-    colSorted = [cols[-1]]+[cols[-2]]+[cols[-4]]+cols[:-4]
-    a = df[colSorted]
-    alen = len(a)
-    avgList = []
-    avg = a.mean().round(2)
-    for c in a.columns:
-        if c == '_id':
-            avgList.append('Avg')
-        elif c == 'Time':
-            avgList.append(None)
-        elif c == 'Station-id':
-            avgList.append(None)
-        else:
-            avgList.append(avg[c])
-    
-    a.loc[alen] = avgList
+    a = cpkinitalTable(stDate,edDate)
     return df_to_table(a)
     # return df_to_table(df[["_id","Station-id","Time","333000000_R","339000000_R","345000000_R","351000000_R","357000000_R",
     #         "363000000_R","369000000_R","375000000_R","381000000_R","387000000_R","393000000_R","399000000_R","405000000_R",
