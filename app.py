@@ -226,15 +226,16 @@ def tables(startDate,endDate):
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print("---------------",stDate,edDate)
     a = cpkinitalTable(wholeData,stDate,edDate)
+    # a = ''
     print(a)
     return df_to_table(a)
     # return df_to_table(df[["_id","Station-id","Time","333000000_R","339000000_R","345000000_R","351000000_R","357000000_R",
     #         "363000000_R","369000000_R","375000000_R","381000000_R","387000000_R","393000000_R","399000000_R","405000000_R",
     #         "411000000_R","417000000_R","423000000_R"]])
 
-app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
+# app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
 # Loading screen CSS
-app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/brPBPO.css"})
+# app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/brPBPO.css"})
 
 if __name__ == "__main__":
     app.run_server(debug=True)
