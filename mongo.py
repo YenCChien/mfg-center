@@ -50,14 +50,14 @@ def saveDB(db, table, data, server, port=27017):
     c.close
 
 def monthPass(m):
-    conn = MongoClient('127.0.0.1:27017')
+    conn = MongoClient('192.168.45.38:27017')
     db = conn['1521900003T0']
     collection=db.T1_Log
     result = collection.find({'Time':{'$gte': datetime(2018,m,1),'$lt': datetime(2018,m,1)+relativedelta(months=1)}}).count()
     return result
 
 def getErrorCount(stDate,edDate):
-    conn = MongoClient('127.0.0.1:27017')
+    conn = MongoClient('192.168.45.38:27017')
     db = conn['1521900003T0']
     collection=db.T1_Log
     ErrorCount = {}
@@ -94,15 +94,15 @@ def cpkLevel(cpkList):
             levelList.append('A+')
     return levelList
 
-def cpkinitalTable(wholeData,stDate,edDate):
-    # conn = MongoClient('127.0.0.1:27017')
-    # db = conn['1521900003T0']
-    # colls = db.collection_names()
-    # collection=db.DsQAM
-    # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
-    getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
+def cpkinitalTable(stDate,edDate):
+    conn = MongoClient('192.168.45.38:27017')
+    db = conn['1521900003T0']
+    colls = db.collection_names()
+    collection=db.DsQAM
+    getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
+    # getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
     # print(getPass[0]['Frequency'])
-    # conn.close()
+    conn.close()
     df = pd.DataFrame(getPass)
     df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
     cols = df.columns.tolist()
@@ -182,10 +182,10 @@ def cpkinitalTable(wholeData,stDate,edDate):
     a.loc[9] = levellist
     a.loc[10] = calist
     a.loc[11] = cplist
-    return a
+    return a[:12]
 
 def getdbList():
-    conn = MongoClient('127.0.0.1:27017')
+    conn = MongoClient('192.168.45.38:27017')
     dblist = conn.list_database_names()
     dbDicList = []
     for db in dblist:
@@ -193,13 +193,14 @@ def getdbList():
     return dbDicList
 
 def getcollectionList():
-    conn = MongoClient('127.0.0.1:27017')
+    conn = MongoClient('192.168.45.38:27017')
     db = conn['1521900003T0']
     collList = db.list_collection_names()
     collDicList = []
     for col in collList:
         collDicList.append({"label": col, "value": col})
     return collDicList
+
 
 # conn = MongoClient('192.168.45.68:27017')
 

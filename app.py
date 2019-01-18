@@ -15,11 +15,11 @@ from bson.objectid import ObjectId
 from cpk import *
 from mongo import *
 
-conn_ = MongoClient('127.0.0.1:27017')
+conn_ = MongoClient('192.168.45.38:27017')
 db_ = conn_['1521900003T0']
 collection_=db_.DsQAM
 
-wholeData = [i for i in collection_.find()]
+# wholeData = [i for i in collection_.find()]
 # print(wholeData)
 
 app = dash.Dash(__name__)
@@ -134,7 +134,7 @@ def render_content(tab):
         return opportunities.layout
 
 def parsingRates(cond):
-    conn = MongoClient('127.0.0.1:27017')
+    conn = MongoClient('192.168.45.38:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     getPass = 0
@@ -191,7 +191,7 @@ def reTestRatio(startDate,endDate):
             )
     layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h"))
     return dict(data=[trace], layout=layout)
-
+'''
 @app.callback(Output("displot", "figure"),
              [Input("date-picker", "start_date"),
              Input("date-picker", "end_date"),])
@@ -199,11 +199,11 @@ def displot(startDate,endDate):
     if endDate==None:return ''
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
-    # conn = MongoClient('127.0.0.1:27017')
-    # db = conn['1521900003T0']
-    # collection=db.DsQAM
-    # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
-    getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
+    conn = MongoClient('192.168.45.38:27017')
+    db = conn['1521900003T0']
+    collection=db.DsQAM
+    getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
+    # getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
     df = pd.DataFrame(getPass)
     df = df.fillna(0)
     df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
@@ -214,6 +214,7 @@ def displot(startDate,endDate):
         dataList.append(df[x])
     # print(dataList,colSorted)
     return ff.create_distplot(dataList, colSorted,show_curve=False, bin_size=.5,show_rug=False)
+'''
 
 @app.callback(Output("leads_table", "children"),
              [Input("date-picker", "start_date"),
@@ -225,7 +226,7 @@ def tables(startDate,endDate):
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print("---------------",stDate,edDate)
-    a = cpkinitalTable(wholeData,stDate,edDate)
+    a = cpkinitalTable(stDate,edDate)
     # a = ''
     print(a)
     return df_to_table(a)
