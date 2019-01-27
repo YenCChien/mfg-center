@@ -183,7 +183,7 @@ def reTestRatio(startDate,endDate):
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     r = getErrorCount(stDate,edDate)
-    print(r)
+    # print(r)
     trace = go.Pie(
                 labels=list(r.keys()),
                 values=list(r.values()),
@@ -215,12 +215,11 @@ def displot(startDate,endDate):
     # print(dataList,colSorted)
     return ff.create_distplot(dataList, colSorted,show_curve=False, bin_size=.5,show_rug=False)
 '''
-
 @app.callback(Output("leads_table", "children"),
              [Input("date-picker", "start_date"),
              Input("date-picker", "end_date"),])
 def tables(startDate,endDate):
-    print(type(startDate),startDate,endDate)
+    # print(type(startDate),startDate,endDate)
     if endDate==None:return ''
     print(startDate,endDate)
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
