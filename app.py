@@ -15,9 +15,9 @@ from bson.objectid import ObjectId
 from cpk import *
 from mongo import *
 
-conn_ = MongoClient('192.168.45.38:27017')
-db_ = conn_['1521900003T0']
-collection_=db_.DsQAM
+# conn_ = MongoClient('192.168.45.38:27017')
+# db_ = conn_['1521900003T0']
+# collection_=db_.DsQAM
 
 # wholeData = [i for i in collection_.find()]
 # print(wholeData)
@@ -226,9 +226,9 @@ def tables(startDate,endDate):
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print("---------------",stDate,edDate)
-    a = cpkinitalTable(stDate,edDate)
+    a = batchProcessing(stDate,edDate)
     # a = ''
-    print(a)
+    # print(a)
     return df_to_table(a)
     # return df_to_table(df[["_id","Station-id","Time","333000000_R","339000000_R","345000000_R","351000000_R","357000000_R",
     #         "363000000_R","369000000_R","375000000_R","381000000_R","387000000_R","393000000_R","399000000_R","405000000_R",
