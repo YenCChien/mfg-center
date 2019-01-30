@@ -48,17 +48,18 @@ def saveDB(db, table, data, server, port=27017):
     c.login_db(AFI)
     c.collection(table)
     c.insert(data)
-    c.close
+    c.close()
 
 def monthPass(m):
-    conn = MongoClient('192.168.45.38:27017')
+    conn = MongoClient('192.168.0.11:27017')
     db = conn['1521900003T0']
     collection=db.T1_Log
     result = collection.find({'Time':{'$gte': datetime(2018,m,1),'$lt': datetime(2018,m,1)+relativedelta(months=1)}}).count()
+    conn.close()
     return result
 
 def getErrorCount(stDate,edDate):
-    conn = MongoClient('192.168.45.38:27017')
+    conn = MongoClient('192.168.0.11:27017')
     db = conn['1521900003T0']
     collection=db.T1_Log
     ErrorCount = {}
@@ -96,24 +97,25 @@ def cpkLevel(cpkList):
     return levelList
 
 def cpkinitalTable(stDate,edDate):
-    conn = MongoClient('192.168.45.38:27017')
+    print(stDate,edDate)
+    conn = MongoClient('192.168.0.11:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     collection=db.DsQAM
-    getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
+    # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
     # getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
     # print(getPass[0]['Frequency'])
-    print('--------------------{}'.format(len(getPass)))
-    conn.close()
-    df = pd.DataFrame(getPass)
+    # print('--------------------{}'.format(len(getPass)))
+    df = pd.DataFrame([i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})])
     df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
     cols = df.columns.tolist()
     colSorted = [cols[-1]]+[cols[-2]]+[cols[-4]]+cols[:-4]
     # a = df[colSorted].head(10)
     a = df[colSorted]
     alen = len(a)
-    # spec = getPass[0]['MeasurePwr']
-    spec = [round(sum(i)/len(i),2) for i in zip(*[i['MeasurePwr'] for i in getPass])]
+    spec = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})][0]['MeasurePwr']
+    conn.close()
+    # spec = [round(sum(i)/len(i),2) for i in zip(*[i['MeasurePwr'] for i in getPass])]
     avgList,stdList,minList,maxList = [],[],[],[]
     specMin = ['specMin',None,None]
     specMax = ['specMax',None,None]
@@ -161,37 +163,44 @@ def cpkinitalTable(stDate,edDate):
     for c in cpkLevel(cpk): levellist.append(c)
     for c in ca: calist.append('{}%'.format(round(c*100)))
     for c in cp: cplist.append(round(c,2))
-    a.loc[alen] = a.loc[0]
-    a.loc[alen+1] = a.loc[1]
-    a.loc[alen+2] = a.loc[2]
-    a.loc[alen+3] = a.loc[3]
-    a.loc[alen+4] = a.loc[4]
-    a.loc[alen+5] = a.loc[5]
-    a.loc[alen+6] = a.loc[6]
-    a.loc[alen+7] = a.loc[7]
-    a.loc[alen+8] = a.loc[8]
-    a.loc[alen+9] = a.loc[9]
-    a.loc[alen+10] = a.loc[10]
-    a.loc[alen+11] = a.loc[11]
-    a.loc[0] = specMin
-    a.loc[1] = specMax
-    a.loc[2] = avgList
-    a.loc[3] = stdList
-    a.loc[4] = minList
-    a.loc[5] = maxList
-    a.loc[6] = cpkLlist
-    a.loc[7] = cpkHlist
-    a.loc[8] = cpklist
-    a.loc[9] = levellist
-    a.loc[10] = calist
-    a.loc[11] = cplist
+    #.loc[row_indexer,col_indexer] = value instead , a.loc[0].keys()
+    # allList = [specMin,specMax,avgList,stdList,minList,maxList,cpkLlist,cpkHlist,cpklist,levellist,calist,cplist]
+    # for k in a.keys():
+    #     for i,l in enumerate(allList):
+    #         a.loc[i][k] = l[i]
+    # a.loc[alen] = a.loc[0]
+    # a.loc[alen+1] = a.loc[1]
+    # a.loc[alen+2] = a.loc[2]
+    # a.loc[alen+3] = a.loc[3]
+    # a.loc[alen+4] = a.loc[4]
+    # a.loc[alen+5] = a.loc[5]
+    # a.loc[alen+6] = a.loc[6]
+    # a.loc[alen+7] = a.loc[7]
+    # a.loc[alen+8] = a.loc[8]
+    # a.loc[alen+9] = a.loc[9]
+    # a.loc[alen+10] = a.loc[10]
+    # a.loc[alen+11] = a.loc[11]
+    for i,k in enumerate(a.keys()):
+        a.loc[0,k] = specMin[i]
+        a.loc[1,k] = specMax[i]
+        a.loc[2,k] = avgList[i]
+        a.loc[3,k] = stdList[i]
+        a.loc[4,k] = minList[i]
+        a.loc[5,k] = maxList[i]
+        a.loc[6,k] = cpkLlist[i]
+        a.loc[7,k] = cpkHlist[i]
+        a.loc[8,k] = cpklist[i]
+        a.loc[9,k] = levellist[i]
+        a.loc[10,k] = calist[i]
+        a.loc[11,k] = cplist[i]
+    print(a[:12])
     return a[:12]
 
 def batchProcessing(stDate,edDate):
     startTime = time.time()
     # stDate = date
     # edDate = date+relativedelta(days=1)
-    conn = MongoClient('192.168.45.38:27017')
+    conn = MongoClient('192.168.0.11:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     collection=db.DsQAM
@@ -200,7 +209,7 @@ def batchProcessing(stDate,edDate):
         getPass = [i for i in collection.find({'Time':{'$gt': stDate+timedelta(day),'$lt': edDate+timedelta(day)},"Result":"PASS"})]
         # getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
         # print(getPass[0]['Frequency'])
-        print('--------------------{}'.format(len(getPass)))
+        # print('--------------------{}'.format(len(getPass)))
         # conn.close()
         df = pd.DataFrame(getPass)
         df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
@@ -295,7 +304,7 @@ def abatchProcessing(stDate,edDate):
     startTime = time.time()
     # stDate = date
     # edDate = date+relativedelta(days=1)
-    conn = MongoClient('192.168.45.38:27017')
+    conn = MongoClient('192.168.0.11:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     collection=db.DsQAM
@@ -389,10 +398,8 @@ def abatchProcessing(stDate,edDate):
     # (a[a.columns[3:]][:9]+b[b.columns[3:]][:9])/2
     return a[:12]
 
-
-
 def getdbList():
-    conn = MongoClient('192.168.45.38:27017')
+    conn = MongoClient('192.168.0.11:27017')
     dblist = conn.list_database_names()
     dbDicList = []
     for db in dblist:
@@ -400,7 +407,7 @@ def getdbList():
     return dbDicList
 
 def getcollectionList():
-    conn = MongoClient('192.168.45.38:27017')
+    conn = MongoClient('192.168.0.11:27017')
     db = conn['1521900003T0']
     collList = db.list_collection_names()
     collDicList = []

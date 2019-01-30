@@ -3,7 +3,6 @@ from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.figure_factory as ff
-import datetime
 from dateutil.relativedelta import relativedelta
 import pandas as pd
 import flask
@@ -21,10 +20,11 @@ mPass = []
 for m in range(1,13):
     mPass.append(monthPass(m))
 
-retestDic = getErrorCount(datetime(2018,1,1),datetime(2018,12,31))
-# retestDic = {'E116': 2, 'A111': 3, 'R164': 5, 'R103': 8, 'A112': 10, 'E110': 12, 'R143': 15, 'R102': 18, 'J80': 19, 'R162': 0, 'L000': 5, 'E104': 6, 'S004': 7, 'R122': 9, 'C002': 7, 'R145': 0, 'A113': 3, 'D004': 3, 'R104': 0}
-#initTb = cpkinitalTable(datetime(2018,10,12),datetime(2018,10,13))[0:12]
+retestDic = getErrorCount(datetime(2018,10,10),datetime(2018,10,13))
+# retestDic = {'E110': 98, 'E104': 3, 'J80': 4, 'Others': 64, 'E120': 16, 'E108': 14, 'C002': 3, 'E102': 1}
+# initTb = cpkinitalTable(datetime(2018,10,13),datetime(2018,10,14))
 
+# print(initTb)
 
 def indicator(color, text, id_value):
     return html.Div(
@@ -39,6 +39,23 @@ def indicator(color, text, id_value):
             ),
         ],
         className="four columns indicator",
+    )
+
+def df_to_table(df):
+    return html.Table(
+        # Header
+        [html.Tr([html.Th(col) for col in df.columns])] +
+        
+        # Body
+        [
+            html.Tr(
+                [
+                    html.Td(df.iloc[i][col])
+                    for col in df.columns
+                ]
+            )
+            for i in range(len(df))
+        ]
     )
 
 def cpkTab():
@@ -136,7 +153,7 @@ def cpkTab():
             html.Div(
                 id="leads_table",
                 className="row",
-                # children=[df_to_table(initTb)],
+                children=[df_to_table(cpkinitalTable(datetime(2018,10,12),datetime(2018,10,15)))],
                 style={
                     "maxHeight": "550px",
                     "overflowY": "scroll",
@@ -150,20 +167,4 @@ def cpkTab():
         ])
     ])
 
-def df_to_table(df):
-    return html.Table(
-        # Header
-        [html.Tr([html.Th(col) for col in df.columns])] +
-        
-        # Body
-        [
-            html.Tr(
-                [
-                    html.Td(df.iloc[i][col])
-                    for col in df.columns
-                ]
-            )
-            for i in range(len(df))
-        ]
-    )
 
