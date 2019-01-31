@@ -63,7 +63,8 @@ def getErrorCount(stDate,edDate):
     db = conn['1521900003T0']
     collection=db.T1_Log
     ErrorCount = {}
-    r = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},'Result':'FAIL'})]
+    r = [{'ErrorCode':i['ErrorCode']} for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},'Result':'FAIL'}) if 'ErrorCode' in i.keys()]
+    print('-------FAIL:{}'.format(len(r)))
     for s in r:
         try:
             if len(s['ErrorCode']) > 5:
@@ -96,25 +97,27 @@ def cpkLevel(cpkList):
             levelList.append('A+')
     return levelList
 
-def cpkinitalTable(stDate,edDate):
+def cpkinitalTable(stDate,edDate,db_,coll_):
     print(stDate,edDate)
+    sstime = time.time()
     conn = MongoClient('192.168.0.11:27017')
-    db = conn['1521900003T0']
+    db = conn[db_]
     colls = db.collection_names()
-    collection=db.DsQAM
+    collection=db[coll_]
     # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
     # getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
     # print(getPass[0]['Frequency'])
     # print('--------------------{}'.format(len(getPass)))
     df = pd.DataFrame([i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})])
+    spec = df['MeasurePwr'][0]
     df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
     cols = df.columns.tolist()
     colSorted = [cols[-1]]+[cols[-2]]+[cols[-4]]+cols[:-4]
     # a = df[colSorted].head(10)
     a = df[colSorted]
     alen = len(a)
-    spec = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})][0]['MeasurePwr']
     conn.close()
+    print('Query MongoDB During Time: {}'.format(time.time()-sstime))
     # spec = [round(sum(i)/len(i),2) for i in zip(*[i['MeasurePwr'] for i in getPass])]
     avgList,stdList,minList,maxList = [],[],[],[]
     specMin = ['specMin',None,None]
@@ -193,7 +196,8 @@ def cpkinitalTable(stDate,edDate):
         a.loc[9,k] = levellist[i]
         a.loc[10,k] = calist[i]
         a.loc[11,k] = cplist[i]
-    print(a[:12])
+    # print(a[:12])
+    print('During Time: {}'.format(time.time()-sstime))
     return a[:12]
 
 def batchProcessing(stDate,edDate):

@@ -62,22 +62,13 @@ def cpkTab():
     return html.Div([
         html.Div([
             html.Div(
-                dcc.DatePickerRange(
-                    id='date-picker',
-                    start_date=datetime.now()-relativedelta(months=1),
-                    end_date_placeholder_text='End Date',
-                ),
-                className="two columns",
-                style={'width': '18%'}
-            ),
-
-            html.Div(
                 dcc.Dropdown(
                     id="db_dropdown",
                     options=getdbList(),
-                    placeholder='Select DataBase',
+                    placeholder='All DataBase',
                     value="",
                     clearable=False,
+                    # disabled=True
                 ),
                 className="two columns",
                 # style={'width': '70%'}
@@ -87,17 +78,31 @@ def cpkTab():
                 dcc.Dropdown(
                     id="collection_dropdown",
                     options=getcollectionList(),
-                    placeholder='Select Collection',
+                    placeholder='All Collection',
                     value="",
                     clearable=False,
+                    # disabled=True
                 ),
                 className="two columns",
                 # style={'width': '70%'}
             ),
+
+            html.Div(
+                dcc.DatePickerRange(
+                    id='date-picker',
+                    start_date=datetime(2018,11,12),
+                    end_date_placeholder_text='End Date',
+                    updatemode='singledate'
+                ),
+                className="two columns",
+                style={'width': '18%','float':'right'}
+            ),
+
         ],
         className="row",
         style={"marginBottom": "10"},
         ),
+
         html.Div([
             html.Div(
                 [
@@ -149,22 +154,24 @@ def cpkTab():
                 ],
                 className="four columns chart_div"
             ),
-
-            html.Div(
-                id="leads_table",
-                className="row",
-                children=[df_to_table(cpkinitalTable(datetime(2018,10,12),datetime(2018,10,15)))],
-                style={
-                    "maxHeight": "550px",
-                    "overflowY": "scroll",
-                    "padding": "10",
-                    "marginTop": "5",
-                    "backgroundColor":"white",
-                    "border": "1px solid #C8D4E3",
-                    "borderRadius": "3px"
-                },
-            ),
-        ])
+        ],
+        className="row",
+        style={"marginTop": "5"},
+        ),
+        html.Div(
+            id="leads_table",
+            className="row",
+            children=[df_to_table(cpkinitalTable(datetime(2018,10,12),datetime(2018,10,13),'1521900003T0','DsQAM'))],
+            style={
+                "maxHeight": "550px",
+                "overflowY": "scroll",
+                "padding": "10",
+                "marginTop": "5",
+                "backgroundColor":"white",
+                "border": "1px solid #C8D4E3",
+                "borderRadius": "3px"
+            },
+        )
     ])
 
 

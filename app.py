@@ -68,7 +68,7 @@ def afiTab():
     return html.Div([
             dcc.DatePickerRange(
                 id='date-picker-range',
-                start_date=datetime.now(),
+                start_date=datetime(2018,11,12),
                 end_date_placeholder_text='Select a date!'
             ),
             html.Div([
@@ -145,6 +145,15 @@ def parsingRates(cond):
     conn.close()
     return getPass
 
+# @app.callback(Output("collection_dropdown", "disabled"),
+#              [Input("db_dropdown", "value")])
+# def setDbName(db):
+#     print('-------------{}'.format(db))
+#     if db:
+#         return False
+#     else:
+#         return True
+
 @app.callback(Output("pass_indicator", "children"),
              [Input("date-picker-range", "start_date"),
              Input("date-picker-range", "end_date"),])
@@ -175,28 +184,11 @@ def nullContent(startDate,endDate):
     print(startDate,endDate)
     return parsingRates({'Time':{'$gt': stDate},'Time':{'$lt': edDate},'_id': {'$regex':'-'}})
 
-@app.callback(Output("lead_source", "figure"),
-             [Input("date-picker", "start_date"),
-             Input("date-picker", "end_date"),])
-def reTestRatio(startDate,endDate):
-    if endDate==None:return 
-    stDate = datetime.strptime(startDate, "%Y-%m-%d")
-    edDate = datetime.strptime(endDate, "%Y-%m-%d")
-    r = getErrorCount(stDate,edDate)
-    # print(r)
-    trace = go.Pie(
-                labels=list(r.keys()),
-                values=list(r.values()),
-                marker={"colors": ["#264e86", "#0074e4", "#74dbef", "#eff0f4"]},
-            )
-    layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h"))
-    return dict(data=[trace], layout=layout)
-
 @app.callback(Output("displot", "figure"),
              [Input("date-picker", "start_date"),
              Input("date-picker", "end_date"),])
 def displot(startDate,endDate):
-    if endDate==None:return ''
+    if endDate==None: return
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     conn = MongoClient('192.168.0.11:27017')
@@ -217,17 +209,39 @@ def displot(startDate,endDate):
 
 @app.callback(Output("leads_table", "children"),
              [Input("date-picker", "start_date"),
-             Input("date-picker", "end_date"),])
-def tables(startDate,endDate):
+             Input("date-picker", "end_date"),],
+             [State("db_dropdown", "value"),
+             State("collection_dropdown", "value"),])
+def tables(startDate,endDate,db,coll):
     # print(type(startDate),startDate,endDate)
+    if endDate==None: return
+        # stDate = '2018-11-13'
+        # endDate = '2018-11-14'
     print(startDate,endDate)
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print("---------------",stDate,edDate)
-    return df_to_table(cpkinitalTable(stDate,edDate))
+    return df_to_table(cpkinitalTable(stDate,edDate,db,coll))
     # return df_to_table(df[["_id","Station-id","Time","333000000_R","339000000_R","345000000_R","351000000_R","357000000_R",
     #         "363000000_R","369000000_R","375000000_R","381000000_R","387000000_R","393000000_R","399000000_R","405000000_R",
     #         "411000000_R","417000000_R","423000000_R"]])
+
+@app.callback(Output("lead_source", "figure"),
+             [Input("date-picker", "start_date"),
+             Input("date-picker", "end_date"),])
+def reTestRatio(startDate,endDate):
+    if endDate==None:return
+    stDate = datetime.strptime(startDate, "%Y-%m-%d")
+    edDate = datetime.strptime(endDate, "%Y-%m-%d")
+    r = getErrorCount(stDate,edDate)
+    # print(r)
+    trace = go.Pie(
+                labels=list(r.keys()),
+                values=list(r.values()),
+                marker={"colors": ["#264e86", "#0074e4", "#74dbef", "#eff0f4"]},
+            )
+    layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h"))
+    return dict(data=[trace], layout=layout)
 
 # app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
 # Loading screen CSS
