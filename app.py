@@ -186,14 +186,16 @@ def nullContent(startDate,endDate):
 
 @app.callback(Output("displot", "figure"),
              [Input("date-picker", "start_date"),
-             Input("date-picker", "end_date"),])
-def displot(startDate,endDate):
+             Input("date-picker", "end_date"),],
+             [State("db_dropdown", "value"),
+             State("collection_dropdown","value")])
+def displot(startDate,endDate,db_,coll):
     if endDate==None: return
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     conn = MongoClient('192.168.0.11:27017')
-    db = conn['1521900003T0']
-    collection=db.DsQAM
+    db = conn[db_]
+    collection=db[coll]
     # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
     # getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
     df = pd.DataFrame([i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})])
