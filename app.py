@@ -9,7 +9,6 @@ import pandas as pd
 import flask
 import plotly.plotly as py
 from plotly import graph_objs as go
-import math
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from cpk import *
@@ -134,7 +133,7 @@ def render_content(tab):
         return opportunities.layout
 
 def parsingRates(cond):
-    conn = MongoClient('192.168.45.38:27017')
+    conn = MongoClient('192.168.0.11:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     getPass = 0
@@ -183,7 +182,7 @@ def nullContent(startDate,endDate):
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print(startDate,endDate)
     return parsingRates({'Time':{'$gt': stDate},'Time':{'$lt': edDate},'_id': {'$regex':'-'}})
-
+'''
 @app.callback(Output("displot", "figure"),
              [Input("date-picker", "end_date"),],
              [State("date-picker", "start_date"),
@@ -201,16 +200,20 @@ def displot(endDate,startDate,db_,coll):
     # getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
     df = pd.DataFrame([i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})])
     df = df.fillna(0)
-    df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
-    cols = df.columns.tolist()
-    colSorted = cols[:-4]
-    dataList = []
-    for x in cols[:-4]:
-        dataList.append(df[x])
+    if coll_ == 'DsQAM' or coll_ == 'UsQAM':
+        df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
+        cols = df.columns.tolist()
+        colSorted = cols[:-4]
+        dataList = []
+        for x in cols[:-4]:
+            dataList.append(df[x])
+    elif coll_ == 'DsMER' or coll_ == 'UsSNR':
+        df = df.drop(['Frequency','ChResult','DsMER','Result','Time','Station-id','TestTime','Criteria'], axis=1)
+
     # print(dataList,colSorted)
     print('Displot During Time : {}'.format(time.time()-stime))
     return ff.create_distplot(dataList, colSorted,show_curve=False, bin_size=.5,show_rug=False)
-
+'''
 @app.callback(Output("leads_table", "children"),
              [Input("date-picker", "end_date"),],
              [State("date-picker", "start_date"),

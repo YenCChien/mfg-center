@@ -104,21 +104,7 @@ def cpkinitalTable(stDate,edDate,db_,coll_):
     db = conn[db_]
     colls = db.collection_names()
     collection=db[coll_]
-    # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
-    # getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
-    # print(getPass[0]['Frequency'])
-    # print('--------------------{}'.format(len(getPass)))
-    df = pd.DataFrame([i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})])
-    spec = df['MeasurePwr'][0]
-    df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr','Time','Station-id','TestTime'], axis=1)
-    cols = df.columns.tolist()
-    colSorted = [cols[-1]]+cols[:-1]
-    # a = df[colSorted].head(10)
-    a = df[colSorted]
-    alen = len(a)
-    conn.close()
-    print('Query MongoDB During Time: {}'.format(time.time()-sstime))
-    # spec = [round(sum(i)/len(i),2) for i in zip(*[i['MeasurePwr'] for i in getPass])]
+
     avgList,stdList,minList,maxList = [],[],[],[]
     specMin = ['specMin']
     specMax = ['specMax']
@@ -128,10 +114,36 @@ def cpkinitalTable(stDate,edDate,db_,coll_):
     levellist = ['Level']
     calist = ['Ca']
     cplist = ['Cp']
-    for v in [i-2 for i in spec]:specMin.append(round(v,2))
+    # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
+    # getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
+    # print(getPass[0]['Frequency'])
+    # print('--------------------{}'.format(len(getPass)))
+    df = pd.DataFrame([i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})])
+    if coll_ == 'DsQAM' or coll_ == 'UsQAM':
+        spec = df['MeasurePwr'][0]
+        df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr','Time','Station-id','TestTime'], axis=1)
+        for v in [i-2 for i in spec]:specMin.append(round(v,2))
+        for v in [i+2 for i in spec]:specMax.append(round(v,2))
+    elif coll_ == 'DsMER' or coll_ == 'UsSNR':
+        if coll_ == 'DsMER':
+            spec = [df['Criteria'][0]]*len(df['RxMer'][0])
+            df = df.drop(['Frequency','ChResult','RxMer','Result','Time','Station-id','TestTime','Criteria'], axis=1)
+        else:
+            spec = [df['Criteria'][0]]*len(df['UsSnr'][0])
+            df = df.drop(['Frequency','ChResult','UsSnr','Result','Time','Station-id','TestTime','Criteria'], axis=1)
+        for v in spec:
+            specMin.append(round(v,2))
+            specMax.append(round(v+10,2))
 
-    for v in [i+2 for i in spec]:specMax.append(round(v,2))
+    cols = df.columns.tolist()
+    colSorted = [cols[-1]]+cols[:-1]
+    # a = df[colSorted].head(10)
+    a = df[colSorted]
+    alen = len(a)
+    # spec = [round(sum(i)/len(i),2) for i in zip(*[i['MeasurePwr'] for i in getPass])]
 
+    conn.close()    
+    print('Query MongoDB During Time: {}'.format(time.time()-sstime))
     avg = a.mean().round(2)
     std = a.std().round(2)
     amin = a.min()
