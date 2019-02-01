@@ -185,12 +185,13 @@ def nullContent(startDate,endDate):
     return parsingRates({'Time':{'$gt': stDate},'Time':{'$lt': edDate},'_id': {'$regex':'-'}})
 
 @app.callback(Output("displot", "figure"),
-             [Input("date-picker", "start_date"),
-             Input("date-picker", "end_date"),],
-             [State("db_dropdown", "value"),
+             [Input("date-picker", "end_date"),],
+             [State("date-picker", "start_date"),
+             State("db_dropdown", "value"),
              State("collection_dropdown","value")])
-def displot(startDate,endDate,db_,coll):
+def displot(endDate,startDate,db_,coll):
     if endDate==None: return
+    stime = time.time()
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     conn = MongoClient('192.168.0.11:27017')
@@ -207,14 +208,15 @@ def displot(startDate,endDate,db_,coll):
     for x in cols[:-4]:
         dataList.append(df[x])
     # print(dataList,colSorted)
+    print('Displot During Time : {}'.format(time.time()-stime))
     return ff.create_distplot(dataList, colSorted,show_curve=False, bin_size=.5,show_rug=False)
 
 @app.callback(Output("leads_table", "children"),
-             [Input("date-picker", "start_date"),
-             Input("date-picker", "end_date"),],
-             [State("db_dropdown", "value"),
+             [Input("date-picker", "end_date"),],
+             [State("date-picker", "start_date"),
+             State("db_dropdown", "value"),
              State("collection_dropdown", "value"),])
-def tables(startDate,endDate,db,coll):
+def tables(endDate,startDate,db,coll):
     # print(type(startDate),startDate,endDate)
     if endDate==None: return
         # stDate = '2018-11-13'
@@ -229,9 +231,9 @@ def tables(startDate,endDate,db,coll):
     #         "411000000_R","417000000_R","423000000_R"]])
 
 @app.callback(Output("lead_source", "figure"),
-             [Input("date-picker", "start_date"),
-             Input("date-picker", "end_date"),])
-def reTestRatio(startDate,endDate):
+             [Input("date-picker", "end_date"),],
+             [State("date-picker", "start_date"),])
+def reTestRatio(endDate,startDate):
     if endDate==None:return
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
@@ -250,4 +252,4 @@ def reTestRatio(startDate,endDate):
 # app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/brPBPO.css"})
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=True,host='0.0.0.0')

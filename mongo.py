@@ -110,9 +110,9 @@ def cpkinitalTable(stDate,edDate,db_,coll_):
     # print('--------------------{}'.format(len(getPass)))
     df = pd.DataFrame([i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})])
     spec = df['MeasurePwr'][0]
-    df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
+    df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr','Time','Station-id','TestTime'], axis=1)
     cols = df.columns.tolist()
-    colSorted = [cols[-1]]+[cols[-2]]+[cols[-4]]+cols[:-4]
+    colSorted = [cols[-1]]+cols[:-1]
     # a = df[colSorted].head(10)
     a = df[colSorted]
     alen = len(a)
@@ -120,16 +120,18 @@ def cpkinitalTable(stDate,edDate,db_,coll_):
     print('Query MongoDB During Time: {}'.format(time.time()-sstime))
     # spec = [round(sum(i)/len(i),2) for i in zip(*[i['MeasurePwr'] for i in getPass])]
     avgList,stdList,minList,maxList = [],[],[],[]
-    specMin = ['specMin',None,None]
-    specMax = ['specMax',None,None]
-    cpkLlist = ['Cpk-L',None,None]
-    cpkHlist = ['Cpk-H',None,None]
-    cpklist = ['Cpk',None,None]
-    levellist = ['Level',None,None]
-    calist = ['Ca',None,None]
-    cplist = ['Cp',None,None]
+    specMin = ['specMin']
+    specMax = ['specMax']
+    cpkLlist = ['Cpk-L']
+    cpkHlist = ['Cpk-H']
+    cpklist = ['Cpk']
+    levellist = ['Level']
+    calist = ['Ca']
+    cplist = ['Cp']
     for v in [i-2 for i in spec]:specMin.append(round(v,2))
+
     for v in [i+2 for i in spec]:specMax.append(round(v,2))
+
     avg = a.mean().round(2)
     std = a.std().round(2)
     amin = a.min()
@@ -140,31 +142,32 @@ def cpkinitalTable(stDate,edDate,db_,coll_):
             stdList.append('Std')
             minList.append('Min')
             maxList.append('Max')
-        elif c == 'Time':
-            avgList.append(None)
-            stdList.append(None)
-            minList.append(None)
-            maxList.append(None)
-        elif c == 'Station-id':
-            avgList.append(None)
-            stdList.append(None)
-            minList.append(None)
-            maxList.append(None)
         else:
             avgList.append(avg[c])
             stdList.append(std[c])
             minList.append(amin[c])
             maxList.append(amax[c])
-    cpkL = [i for i in map(lambda x, y, z: (x-y)/(3*z) , avgList[3:], specMin[3:], stdList[3:])]
-    cpkH = [i for i in map(lambda x, y, z: (y-x)/(3*z) , avgList[3:], specMax[3:], stdList[3:])]
+
+    cpkL = [i for i in map(lambda x, y, z: (x-y)/(3*z) , avgList[1:], specMin[1:], stdList[1:])]
+
+    cpkH = [i for i in map(lambda x, y, z: (y-x)/(3*z) , avgList[1:], specMax[1:], stdList[1:])]
+
     cpk = [i for i in map(lambda x, y: min(x,y) , cpkL, cpkH)]
-    ca = [i for i in map(lambda x, y, z: abs(x-(y+z)/2)/((z-y)/2), avgList[3:], specMin[3:], specMax[3:])]
-    cp = [i for i in map(lambda x, y, z: (z-y)/(x*6), stdList[3:], specMin[3:], specMax[3:])]
+
+    ca = [i for i in map(lambda x, y, z: abs(x-(y+z)/2)/((z-y)/2), avgList[1:], specMin[1:], specMax[1:])]
+
+    cp = [i for i in map(lambda x, y, z: (z-y)/(x*6), stdList[1:], specMin[1:], specMax[1:])]
+
     for c in cpkL: cpkLlist.append(round(c,2))
+
     for c in cpkH: cpkHlist.append(round(c,2))
+
     for c in cpk: cpklist.append(round(c,2))
+
     for c in cpkLevel(cpk): levellist.append(c)
+
     for c in ca: calist.append('{}%'.format(round(c*100)))
+
     for c in cp: cplist.append(round(c,2))
     #.loc[row_indexer,col_indexer] = value instead , a.loc[0].keys()
     # allList = [specMin,specMax,avgList,stdList,minList,maxList,cpkLlist,cpkHlist,cpklist,levellist,calist,cplist]
@@ -197,7 +200,7 @@ def cpkinitalTable(stDate,edDate,db_,coll_):
         a.loc[10,k] = calist[i]
         a.loc[11,k] = cplist[i]
     # print(a[:12])
-    print('During Time: {}'.format(time.time()-sstime))
+    print('Table During Time: {}'.format(time.time()-sstime))
     return a[:12]
 
 def batchProcessing(stDate,edDate):
