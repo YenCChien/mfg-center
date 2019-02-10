@@ -133,7 +133,7 @@ def render_content(tab):
         return opportunities.layout
 
 def parsingRates(cond):
-    conn = MongoClient('192.168.0.11:27017')
+    conn = MongoClient('127.0.0.1:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     getPass = 0
@@ -193,8 +193,7 @@ def displot(endDate,startDate,db_,coll):
     stime = time.time()
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
-    conn = MongoClient('192.168.0.11:27017')
-    coll = 'UsQAM'
+    conn = MongoClient('127.0.0.1:27017')
     db = conn[db_]
     collection=db[coll]
     # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
@@ -205,12 +204,16 @@ def displot(endDate,startDate,db_,coll):
         df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
         cols = df.columns.tolist()
         colSorted = cols[:-4]
-        dataList = []
-        for x in cols[:-4]:
-            dataList.append(df[x])
     elif coll == 'DsMER' or coll == 'UsSNR':
-        df = df.drop(['Frequency','ChResult','DsMER','Result','Time','Station-id','TestTime','Criteria'], axis=1)
-
+        if coll == 'DsMER':
+            df = df.drop(['Frequency','ChResult','RxMer','Result','Time','Station-id','TestTime','Criteria'], axis=1)
+        elif coll == 'UsSNR':
+            df = df.drop(['Frequency','ChResult','UsSnr','Result','Time','Station-id','TestTime','Criteria'], axis=1)
+        cols = df.columns.tolist()
+        colSorted = cols[:-1]
+    dataList = []
+    for x in colSorted:
+        dataList.append(df[x])    
     # print(dataList,colSorted)
     print('Displot During Time : {}'.format(time.time()-stime))
     return ff.create_distplot(dataList, colSorted,show_curve=False, bin_size=.5,show_rug=False)
