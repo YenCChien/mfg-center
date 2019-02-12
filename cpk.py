@@ -1,4 +1,4 @@
-import dash
+import dash, dash_table
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
@@ -8,7 +8,7 @@ import pandas as pd
 import flask
 import plotly.plotly as py
 from plotly import graph_objs as go
-import math
+import math, os
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from app import *
@@ -21,6 +21,7 @@ for m in range(1,13):
     mPass.append(monthPass(m))
 
 retestDic = getErrorCount(datetime(2018,10,10),datetime(2018,10,13))
+eCodeReference = pd.read_csv(os.path.join(os.getcwd(),'MFG Test Script Error Code_20181015.csv'))
 # retestDic = {'E110': 98, 'E104': 3, 'J80': 4, 'Others': 64, 'E120': 16, 'E108': 14, 'C002': 3, 'E102': 1}
 # initTb = cpkinitalTable(datetime(2018,10,13),datetime(2018,10,14))
 
@@ -56,6 +57,59 @@ def df_to_table(df):
             )
             for i in range(len(df))
         ]
+    )
+
+def modal():
+    return html.Div(
+        html.Div(
+            [
+                html.Div(
+                    [   
+                        # modal header
+                        html.Div(
+                            [
+                                html.Span(
+                                    "Error Code",
+                                    style={
+                                        "color": "#506784",
+                                        "fontWeight": "bold",
+                                        "fontSize": "20",
+                                    },
+                                ),
+                                html.Span(
+                                    "×",
+                                    id="leads_modal_close",
+                                    n_clicks=0,
+                                    style={
+                                        "float": "right",
+                                        "cursor": "pointer",
+                                        "marginTop": "0",
+                                        "marginBottom": "17",
+                                    },
+                                ),
+                            ],
+                            className="row",
+                            style={"borderBottom": "1px solid #C8D4E3"},
+                        ),
+
+                        # modal form
+                        html.Div(
+                            [
+                                dash_table.DataTable(
+                                id='table',
+                                columns=[{"name": i, "id": i} for i in eCodeReference.columns],
+                                data=eCodeReference.to_dict("rows"),
+                            )]
+                        )
+                    ],
+                    className="modal-content",
+                    style={"textAlign": "center"},
+                )
+            ],
+            className="modal",
+        ),
+        id="leads_modal",
+        style={"display": "none"},
     )
 
 def cpkTab():
@@ -96,6 +150,17 @@ def cpkTab():
                 ),
                 className="two columns",
                 style={'width': '18%','float':'right'}
+            ),
+
+            html.Div(
+                html.Span(
+                    "Error Code",
+                    id="new_case",
+                    n_clicks=0,
+                    className="button button--primary add",
+                ),
+                className="two columns",
+                style={"float": "right"},
             ),
 
         ],
@@ -171,7 +236,6 @@ def cpkTab():
                 "border": "1px solid #C8D4E3",
                 "borderRadius": "3px"
             },
-        )
+        ),
+        modal()
     ])
-
-

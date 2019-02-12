@@ -65,57 +65,57 @@ app.layout = html.Div(
 
 def afiTab():
     return html.Div([
-            dcc.DatePickerRange(
-                id='date-picker-range',
-                start_date=datetime(2018,11,12),
-                end_date_placeholder_text='Select a date!'
-            ),
-            html.Div([
-            html.Div(
-                [
-                    html.P("Leads count per state"),
-                    dcc.Graph(
-                        id="map",
-                        style={"height": "90%", "width": "98%"},
-                        config=dict(displayModeBar=False),
-                    ),
-                ],
-                className="four columns chart_div"
-            ),
+        dcc.DatePickerRange(
+            id='date-picker-range',
+            start_date=datetime(2018,11,12),
+            end_date_placeholder_text='Select a date!'
+        ),
+        html.Div([
+        html.Div(
+            [
+                html.P("Leads count per state"),
+                dcc.Graph(
+                    id="map",
+                    style={"height": "90%", "width": "98%"},
+                    config=dict(displayModeBar=False),
+                ),
+            ],
+            className="four columns chart_div"
+        ),
 
-            html.Div(
-                [
-                    html.P("Leads by source"),
-                    dcc.Graph(
-                        id="lead_source",
-                        style={"height": "90%", "width": "98%"},
-                        config=dict(displayModeBar=False),
-                        figure=dict(data=[go.Pie(
-                            labels=['a','b','c','d','e','f'],
-                            values=[2,3,5,7,10,8],
-                            marker={"colors": ["#264e86", "#0074e4", "#74dbef", "#eff0f4"]},
-                            )], layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h")))
-                    ),
-                ],
-                className="four columns chart_div"
-            ),
-            indicator(
-                "#EF553B",
-                "Retest Rates",
-                "retest_indicator",
-            ),
-            indicator(
-                "#EF553B",
-                "PASS Rates",
-                "pass_indicator",
-            ),
-            indicator(
-                "#EF553B",
-                "FAIL Rates",
-                "fail_indicator",
-            ),
-            ])
+        html.Div(
+            [
+                html.P("Leads by source"),
+                dcc.Graph(
+                    id="lead_source",
+                    style={"height": "90%", "width": "98%"},
+                    config=dict(displayModeBar=False),
+                    figure=dict(data=[go.Pie(
+                        labels=['a','b','c','d','e','f'],
+                        values=[2,3,5,7,10,8],
+                        marker={"colors": ["#264e86", "#0074e4", "#74dbef", "#eff0f4"]},
+                        )], layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h")))
+                ),
+            ],
+            className="four columns chart_div"
+        ),
+        indicator(
+            "#EF553B",
+            "Retest Rates",
+            "retest_indicator",
+        ),
+        indicator(
+            "#EF553B",
+            "PASS Rates",
+            "pass_indicator",
+        ),
+        indicator(
+            "#EF553B",
+            "FAIL Rates",
+            "fail_indicator",
+        ),
         ])
+    ])
 
 
 app.config['suppress_callback_exceptions']=True
@@ -133,7 +133,7 @@ def render_content(tab):
         return opportunities.layout
 
 def parsingRates(cond):
-    conn = MongoClient('127.0.0.1:27017')
+    conn = MongoClient('192.168.0.11:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     getPass = 0
@@ -193,7 +193,7 @@ def displot(endDate,startDate,db_,coll):
     stime = time.time()
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
-    conn = MongoClient('127.0.0.1:27017')
+    conn = MongoClient('192.168.0.11:27017')
     db = conn[db_]
     collection=db[coll]
     # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
@@ -253,6 +253,23 @@ def reTestRatio(endDate,startDate):
             )
     layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h"))
     return dict(data=[trace], layout=layout)
+
+@app.callback(Output("leads_modal", "style"), 
+             [Input("new_case", "n_clicks")])
+def display_cases_modal_callback(n):
+    print('-------------------'+str(n))
+    if n > 0:
+        print('block')
+        return {"display": "block"}
+    print('none')
+    return {"display": "none"}
+
+@app.callback(
+    Output("new_case", "n_clicks"),
+    [Input("cases_modal_close", "n_clicks"), Input("submit_new_case", "n_clicks")],
+)
+def close_modal_callback(n, n2):
+    return 0
 
 # app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
 # Loading screen CSS
