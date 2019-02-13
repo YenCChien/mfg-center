@@ -1,5 +1,5 @@
 import dash, dash_table
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.figure_factory as ff
@@ -11,10 +11,10 @@ from plotly import graph_objs as go
 import math, os
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from app import *
 import numpy as np
 from datetime import datetime
 from mongo import *
+from app import app, indicator, df_to_table
 
 mPass = []
 for m in range(1,13):
@@ -26,38 +26,6 @@ eCodeReference = pd.read_csv(os.path.join(os.getcwd(),'MFG Test Script Error Cod
 # initTb = cpkinitalTable(datetime(2018,10,13),datetime(2018,10,14))
 
 # print(initTb)
-
-def indicator(color, text, id_value):
-    return html.Div(
-        [
-            html.P(
-                text,
-                className="twelve columns indicator_text"
-            ),
-            html.P(
-                id = id_value,
-                className="indicator_value"
-            ),
-        ],
-        className="four columns indicator",
-    )
-
-def df_to_table(df):
-    return html.Table(
-        # Header
-        [html.Tr([html.Th(col) for col in df.columns])] +
-        
-        # Body
-        [
-            html.Tr(
-                [
-                    html.Td(df.iloc[i][col])
-                    for col in df.columns
-                ]
-            )
-            for i in range(len(df))
-        ]
-    )
 
 def modal():
     return html.Div(
@@ -109,11 +77,11 @@ def modal():
             className="modal",
         ),
         id="leads_modal",
-        style={"display": "none"},
+        style={"display": 'none'},
     )
 
-def cpkTab():
-    return html.Div([
+layout = [
+    html.Div([
         html.Div([
             html.Div(
                 dcc.Dropdown(
@@ -125,7 +93,7 @@ def cpkTab():
                     # disabled=True
                 ),
                 className="two columns",
-                # style={'width': '70%'}
+                style={'width': '10%'}
             ),
 
             html.Div(
@@ -138,7 +106,7 @@ def cpkTab():
                     # disabled=True
                 ),
                 className="two columns",
-                # style={'width': '70%'}
+                style={'width': '10%'}
             ),
 
             html.Div(
@@ -239,3 +207,5 @@ def cpkTab():
         ),
         modal()
     ])
+]
+

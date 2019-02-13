@@ -6,14 +6,14 @@ import plotly.figure_factory as ff
 import dash_html_components as html
 from datetime import datetime
 import pandas as pd
-import flask
+import flask, os
 import plotly.plotly as py
 from plotly import graph_objs as go
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from cpk import *
+from apps import cpk
+from apps.cpk import *
 from mongo import *
-
 # conn_ = MongoClient('192.168.45.38:27017')
 # db_ = conn_['1521900003T0']
 # collection_=db_.DsQAM
@@ -22,6 +22,44 @@ from mongo import *
 # print(wholeData)
 
 app = dash.Dash(__name__)
+app.config.suppress_callback_exceptions = True
+
+# css_directory = os.getcwd()
+# stylesheets = ['dash_crm.css','all.css','typography.css','bWLwgP.css','brPBPO.css','stylesheet-oil-and-gas.css']
+# static_css_route = '/assets/'
+
+def indicator(color, text, id_value):
+    return html.Div(
+        [
+            html.P(
+                text,
+                className="twelve columns indicator_text"
+            ),
+            html.P(
+                id = id_value,
+                className="indicator_value"
+            ),
+        ],
+        className="four columns indicator",
+    )
+
+def df_to_table(df):
+    return html.Table(
+        # Header
+        [html.Tr([html.Th(col) for col in df.columns])] +
+        
+        # Body
+        [
+            html.Tr(
+                [
+                    html.Td(df.iloc[i][col])
+                    for col in df.columns
+                ]
+            )
+            for i in range(len(df))
+        ]
+    )
+
 
 app.layout = html.Div(
     [
@@ -63,75 +101,6 @@ app.layout = html.Div(
     style={"margin": "0%"},
 )
 
-def afiTab():
-    return html.Div([
-        dcc.DatePickerRange(
-            id='date-picker-range',
-            start_date=datetime(2018,11,12),
-            end_date_placeholder_text='Select a date!'
-        ),
-        html.Div([
-        html.Div(
-            [
-                html.P("Leads count per state"),
-                dcc.Graph(
-                    id="map",
-                    style={"height": "90%", "width": "98%"},
-                    config=dict(displayModeBar=False),
-                ),
-            ],
-            className="four columns chart_div"
-        ),
-
-        html.Div(
-            [
-                html.P("Leads by source"),
-                dcc.Graph(
-                    id="lead_source",
-                    style={"height": "90%", "width": "98%"},
-                    config=dict(displayModeBar=False),
-                    figure=dict(data=[go.Pie(
-                        labels=['a','b','c','d','e','f'],
-                        values=[2,3,5,7,10,8],
-                        marker={"colors": ["#264e86", "#0074e4", "#74dbef", "#eff0f4"]},
-                        )], layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h")))
-                ),
-            ],
-            className="four columns chart_div"
-        ),
-        indicator(
-            "#EF553B",
-            "Retest Rates",
-            "retest_indicator",
-        ),
-        indicator(
-            "#EF553B",
-            "PASS Rates",
-            "pass_indicator",
-        ),
-        indicator(
-            "#EF553B",
-            "FAIL Rates",
-            "fail_indicator",
-        ),
-        ])
-    ])
-
-
-app.config['suppress_callback_exceptions']=True
-
-@app.callback(Output("tab_content", "children"),
-             [Input("tabs", "value")],)
-def render_content(tab):
-    if tab == "cpk_tab":
-        return cpkTab()
-    elif tab == "b_tab":
-        return 'No Content'
-    elif tab == "afi_tab":
-        return afiTab()
-    else:
-        return opportunities.layout
-
 def parsingRates(cond):
     conn = MongoClient('192.168.0.11:27017')
     db = conn['1521900003T0']
@@ -143,6 +112,35 @@ def parsingRates(cond):
         getPass += collection.find(cond).count()
     conn.close()
     return getPass
+
+@app.callback(Output("tab_content", "children"),
+             [Input("tabs", "value")],)
+def render_content(tab):
+    if tab == "cpk_tab":
+        return cpk.layout
+    elif tab == "b_tab":
+        return 'No Content'
+    elif tab == "afi_tab":
+        return afiTab()
+    else:
+        return opportunities.layout
+
+
+# @app.server.route('{}<stylesheet>'.format(static_css_route))
+# def serve_stylesheet(stylesheet):
+#     if stylesheet not in stylesheets:
+#         raise Exception(
+#             '"{}" is excluded from the allowed static files'.format(
+#                 stylesheet
+#             )
+#         )
+#     return flask.send_from_directory(css_directory, stylesheet)
+
+
+# app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
+# Loading screen CSS
+# app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/brPBPO.css"})
+
 
 # @app.callback(Output("collection_dropdown", "disabled"),
 #              [Input("db_dropdown", "value")])
@@ -157,7 +155,7 @@ def parsingRates(cond):
              [Input("date-picker-range", "start_date"),
              Input("date-picker-range", "end_date"),])
 def passContent(startDate,endDate):
-    if endDate==None:return ''
+    # if endDate==None:return ''
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print(startDate,endDate)
@@ -167,7 +165,7 @@ def passContent(startDate,endDate):
              [Input("date-picker-range", "start_date"),
              Input("date-picker-range", "end_date"),])
 def failContent(startDate,endDate):
-    if endDate==None:return ''
+    # if endDate==None:return ''
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print(startDate,endDate)
@@ -177,7 +175,7 @@ def failContent(startDate,endDate):
              [Input("date-picker-range", "start_date"),
              Input("date-picker-range", "end_date"),])
 def nullContent(startDate,endDate):
-    if endDate==None:return ''
+    # if endDate==None:return ''
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     print(startDate,endDate)
@@ -189,7 +187,7 @@ def nullContent(startDate,endDate):
              State("db_dropdown", "value"),
              State("collection_dropdown","value")])
 def displot(endDate,startDate,db_,coll):
-    if endDate==None: return
+    # if endDate==None: return
     stime = time.time()
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
@@ -225,9 +223,9 @@ def displot(endDate,startDate,db_,coll):
              State("collection_dropdown", "value"),])
 def tables(endDate,startDate,db,coll):
     # print(type(startDate),startDate,endDate)
-    if endDate==None: return
-        # stDate = '2018-11-13'
-        # endDate = '2018-11-14'
+    # if endDate==None:
+    #     stDate = '2018-11-13'
+    #     endDate = '2018-11-14'
     print(startDate,endDate)
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
@@ -241,7 +239,7 @@ def tables(endDate,startDate,db,coll):
              [Input("date-picker", "end_date"),],
              [State("date-picker", "start_date"),])
 def reTestRatio(endDate,startDate):
-    if endDate==None:return
+    # if endDate==None:return
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
     r = getErrorCount(stDate,edDate)
@@ -264,16 +262,11 @@ def display_cases_modal_callback(n):
     print('none')
     return {"display": "none"}
 
-@app.callback(
-    Output("new_case", "n_clicks"),
-    [Input("cases_modal_close", "n_clicks"), Input("submit_new_case", "n_clicks")],
-)
-def close_modal_callback(n, n2):
+@app.callback(Output("new_case", "n_clicks"),
+             [Input("leads_modal_close", "n_clicks")])
+def close_modal_callback(n):
+    print(n)
     return 0
-
-# app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
-# Loading screen CSS
-# app.css.append_css({"external_url": "https://codepen.io/chriddyp/pen/brPBPO.css"})
 
 if __name__ == "__main__":
     app.run_server(debug=True,host='0.0.0.0')
