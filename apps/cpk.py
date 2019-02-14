@@ -5,6 +5,7 @@ import dash_html_components as html
 import plotly.figure_factory as ff
 from dateutil.relativedelta import relativedelta
 import pandas as pd
+import dash_cytoscape as cyto
 import flask
 import plotly.plotly as py
 from plotly import graph_objs as go
@@ -205,7 +206,100 @@ layout = [
                 "borderRadius": "3px"
             },
         ),
-        modal()
+        modal(),
+        html.Div([
+            html.Div(
+                cyto.Cytoscape(
+                    id='cytoscape-compound',
+                    layout={'name': 'preset'},
+                    style={'width': '100%', 'height': '300px'},
+                    stylesheet=[
+                        {
+                            'selector': 'node',
+                            'style': {'content': 'data(label)'}
+                        },
+                        {
+                            'selector': '.countries',
+                            'style': {'width': 5}
+                        },
+                        {
+                            'selector': '.cities',
+                            'style': {'line-style': 'dashed'}
+                        }
+                    ],
+                    elements=[
+                        # Parent Nodes
+                        {
+                            'data': {'id': 'us', 'label': 'HT_T101'}
+                        },
+
+                        # Children Nodes
+                        {
+                            'data': {'id': '1', 'label': '1', 'parent': 'us'},
+                            'position': {'x': 100, 'y': 200}
+                        },
+                        {
+                            'data': {'id': '2', 'label': '2', 'parent': 'us'},
+                            'position': {'x': 150, 'y': 200}
+                        },
+                        {
+                            'data': {'id': '3', 'label': '3', 'parent': 'us'},
+                            'position': {'x': 200, 'y': 200}
+                        },
+                        {
+                            'data': {'id': '4', 'label': '4', 'parent': 'us'},
+                            'position': {'x': 250, 'y': 200}
+                        },
+                        {
+                            'data': {'id': '5', 'label': '5', 'parent': 'us'},
+                            'position': {'x': 300, 'y': 200}
+                        },
+                        {
+                            'data': {'id': '6', 'label': '6', 'parent': 'us'},
+                            'position': {'x': 350, 'y': 200}
+                        },
+                        {
+                            'data': {'id': '7', 'label': '7', 'parent': 'us'},
+                            'position': {'x': 400, 'y': 200}
+                        },
+                        {
+                            'data': {'id': '8', 'label': '8', 'parent': 'us'},
+                            'position': {'x': 450, 'y': 200}
+                        },
+
+                        # Edges
+                        # {
+                        #     'data': {'source': '1', 'target': '2'},
+                        #     'classes': 'countries'
+                        # },
+                        # {
+                        #     'data': {'source': '2', 'target': '3'},
+                        #     'classes': 'countries'
+                        # },
+                        # {
+                        #     'data': {'source': '3', 'target': '4'},
+                        #     'classes': 'countries'
+                        # },
+                        # {
+                        #     'data': {'source': '4', 'target': '5'},
+                        #     'classes': 'countries'
+                        # },
+                        # {
+                        #     'data': {'source': '4', 'target': '5'},
+                        #     'classes': 'countries'
+                        # },
+                        # {
+                        #     'data': {'source': '4', 'target': '5'},
+                        #     'classes': 'countries'
+                        # },
+                        # {
+                        #     'data': {'source': '4', 'target': '5'},
+                        #     'classes': 'countries'
+                        # },
+                    ]
+                )
+            )
+        ])
     ])
 ]
 

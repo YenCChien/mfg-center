@@ -102,7 +102,7 @@ app.layout = html.Div(
 )
 
 def parsingRates(cond):
-    conn = MongoClient('192.168.0.11:27017')
+    conn = MongoClient('192.168.0.12:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     getPass = 0
@@ -191,7 +191,7 @@ def displot(endDate,startDate,db_,coll):
     stime = time.time()
     stDate = datetime.strptime(startDate, "%Y-%m-%d")
     edDate = datetime.strptime(endDate, "%Y-%m-%d")
-    conn = MongoClient('192.168.0.11:27017')
+    conn = MongoClient('192.168.0.12:27017')
     db = conn[db_]
     collection=db[coll]
     # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
