@@ -210,9 +210,9 @@ layout = [
         html.Div([
             html.Div(
                 cyto.Cytoscape(
-                    id='cytoscape-compound',
+                    id='HT_T101',
                     layout={'name': 'preset'},
-                    style={'width': '100%', 'height': '300px'},
+                    style={'width': '50%', 'height': '300px'},
                     stylesheet=[
                         {
                             'selector': 'node',
@@ -299,7 +299,7 @@ layout = [
                     ]
                 )
             )
-        ])
+        ]),
     ])
 ]
 
