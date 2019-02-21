@@ -24,49 +24,49 @@ layout = [
             end_date_placeholder_text='Select a date!'
         ),
         html.Div([
-        html.Div(
-            [
-                html.P("Leads count per state"),
-                dcc.Graph(
-                    id="map",
-                    style={"height": "90%", "width": "98%"},
-                    config=dict(displayModeBar=False),
-                ),
-            ],
-            className="four columns chart_div"
-        ),
+            html.Div(
+                [
+                    html.P("Leads count per state"),
+                    dcc.Graph(
+                        id="map",
+                        style={"height": "90%", "width": "98%"},
+                        config=dict(displayModeBar=False),
+                    ),
+                ],
+                className="four columns chart_div"
+            ),
 
-        html.Div(
-            [
-                html.P("Leads by source"),
-                dcc.Graph(
-                    id="lead_source",
-                    style={"height": "90%", "width": "98%"},
-                    config=dict(displayModeBar=False),
-                    figure=dict(data=[go.Pie(
-                        labels=['a','b','c','d','e','f'],
-                        values=[2,3,5,7,10,8],
-                        marker={"colors": ["#264e86", "#0074e4", "#74dbef", "#eff0f4"]},
-                        )], layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h")))
-                ),
-            ],
-            className="four columns chart_div"
-        ),
-        indicator(
-            "#EF553B",
-            "Retest Rates",
-            "retest_indicator",
-        ),
-        indicator(
-            "#EF553B",
-            "PASS Rates",
-            "pass_indicator",
-        ),
-        indicator(
-            "#EF553B",
-            "FAIL Rates",
-            "fail_indicator",
-        ),
+            html.Div(
+                [
+                    html.P("Leads by source"),
+                    dcc.Graph(
+                        id="lead_source",
+                        style={"height": "90%", "width": "98%"},
+                        config=dict(displayModeBar=False),
+                        figure=dict(data=[go.Pie(
+                            labels=['a','b','c','d','e','f'],
+                            values=[2,3,5,7,10,8],
+                            marker={"colors": ["#264e86", "#0074e4", "#74dbef", "#eff0f4"]},
+                            )], layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h")))
+                    ),
+                ],
+                className="four columns chart_div"
+            ),
+            indicator(
+                "#EF553B",
+                "Retest Rates",
+                "d_indicator",
+            ),
+            indicator(
+                "#EF553B",
+                "PASS Rates",
+                "e_indicator",
+            ),
+            indicator(
+                "#EF553B",
+                "FAIL Rates",
+                "f_indicator",
+            ),
         ])
     ])
 ]

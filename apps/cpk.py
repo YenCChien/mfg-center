@@ -17,6 +17,7 @@ from datetime import datetime
 from mongo import *
 from app import app, indicator, df_to_table
 
+
 mPass = []
 for m in range(1,13):
     mPass.append(monthPass(m))
@@ -194,7 +195,7 @@ layout = [
         ),
         html.Div(
             id="leads_table",
-            className="row",
+            # className="row",
             children=[df_to_table(cpkinitalTable(datetime(2018,10,12),datetime(2018,10,13),'1521900003T0','DsQAM'))],
             style={
                 "maxHeight": "550px",
@@ -208,11 +209,14 @@ layout = [
         ),
         modal(),
         html.Div([
-            html.Div(
+            html.Div([
                 cyto.Cytoscape(
                     id='HT_T101',
-                    layout={'name': 'preset'},
-                    style={'width': '50%', 'height': '300px'},
+                    layout={
+                        'name': 'grid',
+                        'rows': '3',
+                    },
+                    style={'width': '100%', 'height': '300px'},
                     stylesheet=[
                         {
                             'selector': 'node',
@@ -230,7 +234,8 @@ layout = [
                     elements=[
                         # Parent Nodes
                         {
-                            'data': {'id': 'us', 'label': 'HT_T101'}
+                            # 'data': {'id': 'us', 'label': 'HT_T101'}
+                            'data': {'id': 'us'}
                         },
 
                         # Children Nodes
@@ -297,9 +302,115 @@ layout = [
                         #     'classes': 'countries'
                         # },
                     ]
-                )
-            )
+                ),
+                indicator(
+                    "#EF553B",
+                    "Retest Rates",
+                    "a_indicator",
+                ),
+                indicator(
+                    "#EF553B",
+                    "PASS Rates",
+                    "b_indicator",
+                ),
+                indicator(
+                    "#EF553B",
+                    "FAIL Rates",
+                    "c_indicator",
+                ),
+            ]),
+            # html.Div([
+                
+            # ],
+            # className="four columns indicator",
+            # )
         ]),
     ])
 ]
 
+@app.callback(Output("displot", "figure"),
+             [Input("date-picker", "end_date"),],
+             [State("date-picker", "start_date"),
+             State("db_dropdown", "value"),
+             State("collection_dropdown","value")])
+def displot(endDate,startDate,db_,coll):
+    # if endDate==None: return
+    stime = time.time()
+    stDate = datetime.strptime(startDate, "%Y-%m-%d")
+    edDate = datetime.strptime(endDate, "%Y-%m-%d")
+    conn = MongoClient('192.168.45.42:27017')
+    db = conn[db_]
+    collection=db[coll]
+    # getPass = [i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})]
+    # getPass = [i for i in wholeData if i['Result']=='PASS' and (stDate < i['Time'] < edDate)]
+    df = pd.DataFrame([i for i in collection.find({'Time':{'$gt': stDate,'$lt': edDate},"Result":"PASS"})])
+    df = df.fillna(0)
+    if coll == 'DsQAM' or coll == 'UsQAM':
+        df = df.drop(['Frequency','ChResult','MeasurePwr','Result','ReportPwr'], axis=1)
+        cols = df.columns.tolist()
+        colSorted = cols[:-4]
+    elif coll == 'DsMER' or coll == 'UsSNR':
+        if coll == 'DsMER':
+            df = df.drop(['Frequency','ChResult','RxMer','Result','Time','Station-id','TestTime','Criteria'], axis=1)
+        elif coll == 'UsSNR':
+            df = df.drop(['Frequency','ChResult','UsSnr','Result','Time','Station-id','TestTime','Criteria'], axis=1)
+        cols = df.columns.tolist()
+        colSorted = cols[:-1]
+    dataList = []
+    for x in colSorted:
+        dataList.append(df[x])    
+    # print(dataList,colSorted)
+    print('Displot During Time : {}'.format(time.time()-stime))
+    return ff.create_distplot(dataList, colSorted,show_curve=False, bin_size=.5,show_rug=False)
+
+@app.callback(Output("leads_table", "children"),
+             [Input("date-picker", "end_date"),],
+             [State("date-picker", "start_date"),
+             State("db_dropdown", "value"),
+             State("collection_dropdown", "value"),])
+def tables(endDate,startDate,db,coll):
+    # print(type(startDate),startDate,endDate)
+    # if endDate==None:
+    #     stDate = '2018-11-13'
+    #     endDate = '2018-11-14' 
+    print(startDate,endDate)
+    stDate = datetime.strptime(startDate, "%Y-%m-%d")
+    edDate = datetime.strptime(endDate, "%Y-%m-%d")
+    print("---------------",stDate,edDate)
+    return df_to_table(cpkinitalTable(stDate,edDate,db,coll))
+    # return df_to_table(df[["_id","Station-id","Time","333000000_R","339000000_R","345000000_R","351000000_R","357000000_R",
+    #         "363000000_R","369000000_R","375000000_R","381000000_R","387000000_R","393000000_R","399000000_R","405000000_R",
+    #         "411000000_R","417000000_R","423000000_R"]])
+
+@app.callback(Output("lead_source", "figure"),
+             [Input("date-picker", "end_date"),],
+             [State("date-picker", "start_date"),])
+def reTestRatio(endDate,startDate):
+    # if endDate==None:return
+    stDate = datetime.strptime(startDate, "%Y-%m-%d")
+    edDate = datetime.strptime(endDate, "%Y-%m-%d")
+    r = getErrorCount(stDate,edDate)
+    # print(r)
+    trace = go.Pie(
+                labels=list(r.keys()),
+                values=list(r.values()),
+                marker={"colors": ["#264e86", "#0074e4", "#74dbef", "#eff0f4"]},
+            )
+    layout=dict(margin=dict(l=0, r=0, t=0, b=65), legend=dict(orientation="h"))
+    return dict(data=[trace], layout=layout)
+
+@app.callback(Output("leads_modal", "style"), 
+             [Input("new_case", "n_clicks")])
+def display_cases_modal_callback(n):
+    print('-------------------'+str(n))
+    if n > 0:
+        print('block')
+        return {"display": "block"}
+    print('none')
+    return {"display": "none"}
+
+@app.callback(Output("new_case", "n_clicks"),
+             [Input("leads_modal_close", "n_clicks")])
+def close_modal_callback(n):
+    print(n)
+    return 0

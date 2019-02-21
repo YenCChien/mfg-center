@@ -51,7 +51,7 @@ def saveDB(db, table, data, server, port=27017):
     c.close()
 
 def monthPass(m):
-    conn = MongoClient('192.168.0.12:27017')
+    conn = MongoClient('192.168.45.42:27017')
     db = conn['1521900003T0']
     collection=db.T1_Log
     result = collection.find({'Time':{'$gte': datetime(2018,m,1),'$lt': datetime(2018,m,1)+relativedelta(months=1)}}).count()
@@ -59,7 +59,7 @@ def monthPass(m):
     return result
 
 def getErrorCount(stDate,edDate):
-    conn = MongoClient('192.168.0.12:27017')
+    conn = MongoClient('192.168.45.42:27017')
     db = conn['1521900003T0']
     collection=db.T1_Log
     ErrorCount = {}
@@ -100,7 +100,7 @@ def cpkLevel(cpkList):
 def cpkinitalTable(stDate,edDate,db_,coll_):
     print(stDate,edDate)
     sstime = time.time()
-    conn = MongoClient('192.168.0.12:27017')
+    conn = MongoClient('192.168.45.42:27017')
     db = conn[db_]
     colls = db.collection_names()
     collection=db[coll_]
@@ -219,7 +219,7 @@ def batchProcessing(stDate,edDate):
     startTime = time.time()
     # stDate = date
     # edDate = date+relativedelta(days=1)
-    conn = MongoClient('192.168.0.12:27017')
+    conn = MongoClient('192.168.45.42:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     collection=db.DsQAM
@@ -323,7 +323,7 @@ def abatchProcessing(stDate,edDate):
     startTime = time.time()
     # stDate = date
     # edDate = date+relativedelta(days=1)
-    conn = MongoClient('192.168.0.12:27017')
+    conn = MongoClient('192.168.45.42:27017')
     db = conn['1521900003T0']
     colls = db.collection_names()
     collection=db.DsQAM
@@ -418,7 +418,7 @@ def abatchProcessing(stDate,edDate):
     return a[:12]
 
 def getdbList():
-    conn = MongoClient('192.168.0.12:27017')
+    conn = MongoClient('192.168.45.42:27017')
     dblist = conn.list_database_names()
     dbDicList = []
     for db in dblist:
@@ -426,7 +426,7 @@ def getdbList():
     return dbDicList
 
 def getcollectionList():
-    conn = MongoClient('192.168.0.12:27017')
+    conn = MongoClient('192.168.45.42:27017')
     db = conn['1521900003T0']
     collList = db.list_collection_names()
     collDicList = []
